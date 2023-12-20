@@ -1,34 +1,22 @@
-import { ref, computed } from 'vue'
-import { defineStore, storeToRefs } from 'pinia'
-import { type Ref } from 'vue'
-import socket from '../socket'
-
-
+import { ref, computed } from 'vue';
+import { defineStore, storeToRefs } from 'pinia';  // Asegúrate de tener esta importación
+import { type Ref } from 'vue';
+import socket from '../sockets/socket';
+import { handlePlayersChange, handleError, handleCoinGrabbed } from '../sockets/socketEvents'; // Ajusta la ruta según tu estructura de carpetas
 
 export const usePopupStore = defineStore('popup', () => {
-  const popup: Ref<{message:string, status:string}> = ref({ message: '', status: '' })
-  const players: Ref<number> = ref(0)
-  function sendMessage(message: string, status: string){
-    popup.value = { message, status}
+  const popup: Ref<{ message: string; status: string }> = ref({ message: '', status: '' });
+  const players: Ref<number> = ref(0);
+
+  function sendMessage(message: string, status: string) {
+    popup.value = { message, status };
   }
-  
-  
-  return { popup, sendMessage, players }
-})
 
-socket.on('playersChange', (data) => {
-  const popupStore = usePopupStore()
-  const { players } = storeToRefs(popupStore)
-  players.value = data.usersInRoom
-  if (data.joined) popupStore.sendMessage('A new player joined the room, id' + data.id, 'success')
-})
+  return { popup, sendMessage, players };
+});
 
-socket.on('error', (data) => {
-  const popupStore = usePopupStore()
-  popupStore.sendMessage(data, 'error')
-})
-
-socket.on('coinGrabbed', (data) => {
-  const popupStore = usePopupStore()
-  popupStore.sendMessage('A player grabbed a coin in room ' + data.room, 'success')
-})
+// Manejo de eventos socket.on
+socket.on('playersChange', handlePlayersChange);
+socket.on('error', handleError);
+socket.on('coinGrabbed', handleCoinGrabbed);
+// Agrega otras llamadas socket.on si es necesario
